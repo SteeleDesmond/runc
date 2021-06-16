@@ -52,3 +52,30 @@ function teardown() {
 	runc run test_busybox
 	[ "$status" -eq 0 ]
 }
+
+@test "runc delete [mount clean up using host mount namespace]" {
+  update_config '	  .mounts += [{
+					source: "tmpfs",
+					destination: "/mnt",
+					type: "tmpfs",
+					options: ["ro", "nodev", "nosuid", "mode=755"]
+				}]
+			| .linux.namespaces -= [{"type": "mount"}]
+			| .linux.maskedPaths |= []
+      | .linux.readonlyPaths |= []'
+
+  sudo runc create test_busybox
+  [ "$status" -eq 0 ]
+#  echo "output: $output"
+#  testcontainer test_busybox created
+
+  runc delete test_busybox
+#  echo "output: $output"
+  [ "$status" -eq 0 ]
+
+#  sudo runc state test_busybox
+#  [ "$status" -ne 0 ]
+
+#  output=$(mount | grep "$ROOT")
+#  [ "$output" = "" ] || fail "mounts were not cleaned up: $output"
+}
