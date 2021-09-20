@@ -42,6 +42,11 @@ func destroy(c *linuxContainer) error {
 			logrus.Warn(err)
 		}
 	}
+	if !c.config.Namespaces.Contains(configs.NEWNS) ||
+		c.config.Namespaces.PathOf(configs.NEWNS) != "" {
+		unmountMounts(c)
+	}
+
 	err := c.cgroupManager.Destroy()
 	if c.intelRdtManager != nil {
 		if ierr := c.intelRdtManager.Destroy(); err == nil {
@@ -52,10 +57,7 @@ func destroy(c *linuxContainer) error {
 		err = rerr
 	}
 	c.initProcess = nil
-	if !c.config.Namespaces.Contains(configs.NEWNS) ||
-		c.config.Namespaces.PathOf(configs.NEWNS) != "" {
-		unmountMounts(c)
-	}
+
 	if herr := runPoststopHooks(c); err == nil {
 		err = herr
 	}

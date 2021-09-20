@@ -542,7 +542,6 @@ function teardown_bundle() {
 	for ct in $(__runc list -q); do
 		__runc delete -f "$ct"
 	done
-	umount -l -R -v "$ROOT/rootfs"
 	rm -rf "$ROOT"
 	remove_parent
 }
